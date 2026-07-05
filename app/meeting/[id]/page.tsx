@@ -62,7 +62,7 @@ export default function MeetingRoom() {
         const role = await joinMeeting(m.id, user.id);
         
         // 2. Fetch LiveKit token using the verified role
-        const res = await fetch(`/api/livekit?room=${id}&username=${encodeURIComponent(user.name)}&role=${role}`);
+        const res = await fetch(`/api/livekit?room=${m.id}&username=${encodeURIComponent(user.name)}&role=${role}`);
         const data = await res.json();
         
         if (!res.ok) { 
