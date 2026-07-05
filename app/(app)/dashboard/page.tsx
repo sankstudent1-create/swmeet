@@ -29,7 +29,6 @@ import Spinner from "@/components/Spinner";
 
 function MeetingRow({ m, isLive = false, staggerIndex = 1 }: { m: Meeting; isLive?: boolean; staggerIndex?: number }) {
   const [copied, setCopied] = useState(false);
-  const router = useRouter();
 
   function copyLink(e: React.MouseEvent) {
     e.preventDefault();
