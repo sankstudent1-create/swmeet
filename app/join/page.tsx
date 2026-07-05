@@ -18,8 +18,11 @@ export default function JoinPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
-    // TODO: replace with supabase.from('meetings').select('*').eq('code', code).single()
-    const meeting = await getMeetingById(code.trim());
+    let finalCode = code.trim();
+    if (!finalCode.startsWith('swm-') && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(finalCode)) {
+      finalCode = 'swm-' + finalCode;
+    }
+    const meeting = await getMeetingById(finalCode);
     setLoading(false);
     if (!meeting) {
       setError("No meeting found with that code. Try again.");

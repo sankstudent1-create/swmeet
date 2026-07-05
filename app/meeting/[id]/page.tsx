@@ -13,8 +13,9 @@ import {
   Monitor, PhoneOff, Send, Users,
   MoreVertical, Maximize2, MicOff as MicOffIcon,
   VideoOff as CameraOffIcon, Link as LinkIcon,
-  ChevronRight, Shield, Volume2, Sliders,
+  ChevronRight, Shield, Volume2, Sliders, QrCode
 } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import Spinner from "@/components/Spinner";
 import {
   LiveKitRoom,
@@ -45,6 +46,7 @@ export default function MeetingRoom() {
   const [tokenError, setTokenError] = useState("");
   const [isWaiting, setIsWaiting] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showQr, setShowQr] = useState(false);
   const [elapsed, setElapsed] = useState(0);
 
   useEffect(() => {
@@ -133,6 +135,13 @@ export default function MeetingRoom() {
         </div>
         <div className="flex items-center gap-2">
           <button
+            onClick={() => setShowQr(true)}
+            className="w-9 h-9 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 flex items-center justify-center text-white/60 hover:text-white transition-all"
+            title="Show QR Code"
+          >
+            <QrCode size={15} />
+          </button>
+          <button
             onClick={copyLink}
             className="flex items-center gap-2 text-xs font-bold text-white/60 border border-white/10 bg-white/5 hover:bg-white/10 hover:text-white px-4 py-2 rounded-full transition-all"
           >
@@ -144,6 +153,21 @@ export default function MeetingRoom() {
           </Link>
         </div>
       </header>
+
+      {/* ── QR CODE POPUP ── */}
+      {showQr && (
+        <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setShowQr(false)}>
+          <div className="bg-[#1c1c1e] p-6 rounded-2xl border border-white/10 shadow-2xl transform scale-100 transition-transform" onClick={e => e.stopPropagation()}>
+            <h3 className="text-white font-bold mb-4 text-center">Scan to Join</h3>
+            <div className="bg-white p-4 rounded-xl flex items-center justify-center">
+              {meeting && <QRCodeSVG value={`${window.location.origin}/meeting/${meeting.code || id}`} size={200} />}
+            </div>
+            <button onClick={() => setShowQr(false)} className="w-full mt-4 py-2.5 bg-white/10 text-white rounded-xl font-bold hover:bg-white/20 transition-colors">
+              Close
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── MAIN AREA ── */}
       <div className="flex-1 relative overflow-hidden">
@@ -344,130 +368,156 @@ function IntelligentLayout({ currentUser, meeting }: { currentUser: User; meetin
         style={{ width: sidebarOpen ? 340 : 0 }}
       >
         {/* Chat Panel */}
-        {activePanel === "chat" && (
-          <>
-            <div className="h-14 border-b border-white/5 flex items-center justify-between px-5 shrink-0 bg-white/3">
-              <div className="flex items-center gap-2.5">
-                <MessageSquare size={16} className="text-brand" />
-                <span className="text-sm font-bold text-white">Meeting Chat</span>
-              </div>
-              <button onClick={() => setActivePanel(null)} className="w-7 h-7 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/40 hover:text-white transition-all">
-                <X size={14} strokeWidth={2.5} />
-              </button>
+        <div style={{ display: activePanel === 'chat' ? 'flex' : 'none' }} className="flex-col h-full w-full flex-1">
+          <div className="h-14 border-b border-white/5 flex items-center justify-between px-5 shrink-0 bg-white/3">
+            <div className="flex items-center gap-2.5">
+              <MessageSquare size={16} className="text-brand" />
+              <span className="text-sm font-bold text-white">Meeting Chat</span>
             </div>
-            <div className="flex-1 min-h-0">
-              <CustomChat />
-            </div>
-          </>
-        )}
+            <button onClick={() => setActivePanel(null)} className="w-7 h-7 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/40 hover:text-white transition-all">
+              <X size={14} strokeWidth={2.5} />
+            </button>
+          </div>
+          <div className="flex-1 min-h-0">
+            <CustomChat />
+          </div>
+        </div>
 
         {/* People Panel */}
-        {activePanel === "people" && (
-          <>
-            <div className="h-14 border-b border-white/5 flex items-center justify-between px-5 shrink-0 bg-white/3">
-              <div className="flex items-center gap-2.5">
-                <Users size={16} className="text-brand" />
-                <span className="text-sm font-bold text-white">Participants</span>
-                <span className="bg-white/10 text-white/60 text-[10px] font-bold px-2 py-0.5 rounded-full">{participantCount}</span>
-              </div>
-              <button onClick={() => setActivePanel(null)} className="w-7 h-7 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/40 hover:text-white transition-all">
-                <X size={14} strokeWidth={2.5} />
-              </button>
+        <div style={{ display: activePanel === 'people' ? 'flex' : 'none' }} className="flex-col h-full w-full flex-1">
+          <div className="h-14 border-b border-white/5 flex items-center justify-between px-5 shrink-0 bg-white/3">
+            <div className="flex items-center gap-2.5">
+              <Users size={16} className="text-brand" />
+              <span className="text-sm font-bold text-white">Participants</span>
+              <span className="bg-white/10 text-white/60 text-[10px] font-bold px-2 py-0.5 rounded-full">{participantCount}</span>
             </div>
-            <div className="flex-1 overflow-y-auto scrollbar-thin p-3 space-y-1">
-              {/* Active Participants */}
-              <div className="text-xs font-bold text-white/40 uppercase tracking-widest mb-2 px-3 pt-2">In Meeting</div>
-              {meeting.participants?.filter(p => (p as any).role !== 'waiting').map((dbUser) => {
-                // Find matching LiveKit participant
-                const p = participants.find(lkP => lkP.identity === dbUser.name);
-                const role = (dbUser as any).role;
-                const isHost = role === 'host';
-                const isMod = role === 'moderator';
-                const isCamOn = p ? p.isCameraEnabled : false;
-                const isMicOn = p ? p.isMicrophoneEnabled : false;
-                
-                return (
-                  <div key={dbUser.id} className="flex items-center justify-between gap-3 px-3 py-3 rounded-xl hover:bg-white/5 transition-colors group/item">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand to-brand-2 flex items-center justify-center text-white text-xs font-black shrink-0">
+            <button onClick={() => setActivePanel(null)} className="w-7 h-7 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/40 hover:text-white transition-all">
+              <X size={14} strokeWidth={2.5} />
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto scrollbar-thin p-3 space-y-1">
+            {/* Active Participants */}
+            <div className="text-xs font-bold text-white/40 uppercase tracking-widest mb-2 px-3 pt-2">In Meeting</div>
+            {meeting.participants?.filter(p => (p as any).role !== 'waiting').map((dbUser) => {
+              // Find matching LiveKit participant
+              const p = participants.find(lkP => lkP.identity === dbUser.name);
+              const role = (dbUser as any).role;
+              const isHost = role === 'host';
+              const isMod = role === 'moderator';
+              const isCamOn = p ? p.isCameraEnabled : false;
+              const isMicOn = p ? p.isMicrophoneEnabled : false;
+              
+              return (
+                <div key={dbUser.id} className="flex items-center justify-between gap-3 px-3 py-3 rounded-xl hover:bg-white/5 transition-colors group/item">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand to-brand-2 flex items-center justify-center text-white text-xs font-black shrink-0">
+                      {(dbUser.name || "?")[0].toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-white truncate flex items-center gap-2">
+                        {dbUser.name}
+                        {dbUser.id === currentUser.id && <span className="text-[10px] text-white/40 font-normal">(You)</span>}
+                        {isHost && <Shield size={10} className="text-brand" />}
+                        {isMod && <Shield size={10} className="text-blue-400" />}
+                      </p>
+                      <p className="text-[11px] text-white/30 capitalize">{role}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {/* Host Controls for Participant */}
+                    {meeting.host_id === currentUser.id && dbUser.id !== currentUser.id && (
+                      <button
+                        onClick={async () => {
+                          const { updateParticipantRole } = await import("@/lib/api");
+                          await updateParticipantRole(meeting.id, dbUser.id, isMod ? 'participant' : 'moderator');
+                          if (p) {
+                            await fetch('/api/livekit/admin', {
+                              method: 'POST',
+                              body: JSON.stringify({ action: 'update-role', room: meeting.id, identity: p.identity, role: isMod ? 'participant' : 'moderator' })
+                            });
+                          }
+                          // Local mutation for instant feedback
+                          (dbUser as any).role = isMod ? 'participant' : 'moderator';
+                        }}
+                        className="opacity-0 group-hover/item:opacity-100 px-2 py-1 mr-1 bg-white/10 hover:bg-white/20 text-white text-[10px] font-bold rounded transition-all"
+                      >
+                        {isMod ? "Remove Mod" : "Make Mod"}
+                      </button>
+                    )}
+                    
+                    {p && (
+                      <>
+                        <button
+                          title={isMicOn ? "Mute Participant" : "Mic Off"}
+                          onClick={async () => {
+                            if (!isMicOn) return;
+                            const audioTracks = Array.from(p.audioTrackPublications.values());
+                            const trackSid = audioTracks[0]?.trackSid;
+                            if (trackSid) {
+                              await fetch('/api/livekit/admin', {
+                                method: 'POST',
+                                body: JSON.stringify({ action: 'mute', room: meeting.id, identity: p.identity, trackSid })
+                              });
+                            }
+                          }}
+                          className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${isMicOn ? "hover:bg-white/10 text-white/50 hover:text-white cursor-pointer" : "bg-red-500/20 text-red-400 cursor-default"}`}
+                        >
+                          {isMicOn ? <Mic size={12} /> : <MicOff size={12} />}
+                        </button>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${isCamOn ? "text-white/50" : "bg-red-500/20 text-red-400"}`}>
+                          {isCamOn ? <VideoIcon size={12} /> : <VideoOff size={12} />}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Waiting Room Section (Only visible to hosts/moderators) */}
+            {(currentUser.role === 'host' || meeting.host_id === currentUser.id || meeting.participants?.find(p => p.id === currentUser.id && (p as any).role === 'moderator')) && meeting.participants?.some(p => (p as any).role === 'waiting') && (
+              <>
+                <div className="text-xs font-bold text-brand uppercase tracking-widest mb-2 px-3 pt-4 flex items-center gap-2">
+                  <AlertCircle size={14} /> Waiting Room
+                </div>
+                {meeting.participants.filter(p => (p as any).role === 'waiting').map((dbUser) => (
+                  <div key={dbUser.id} className="flex flex-col gap-2 px-3 py-3 rounded-xl bg-brand/5 border border-brand/20">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-surface-2 flex items-center justify-center text-white text-xs font-black shrink-0 border border-white/10">
                         {(dbUser.name || "?")[0].toUpperCase()}
                       </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-white truncate flex items-center gap-2">
-                          {dbUser.name}
-                          {dbUser.id === currentUser.id && <span className="text-[10px] text-white/40 font-normal">(You)</span>}
-                          {isHost && <Shield size={10} className="text-brand" />}
-                          {isMod && <Shield size={10} className="text-blue-400" />}
-                        </p>
-                        <p className="text-[11px] text-white/30 capitalize">{role}</p>
-                      </div>
+                      <p className="text-sm font-semibold text-white truncate">{dbUser.name}</p>
                     </div>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      {/* Host Controls for Participant */}
-                      {meeting.host_id === currentUser.id && dbUser.id !== currentUser.id && (
-                        <button
-                          onClick={async () => {
-                            const { updateParticipantRole } = await import("@/lib/api");
-                            await updateParticipantRole(meeting.id, dbUser.id, isMod ? 'participant' : 'moderator');
-                          }}
-                          className="opacity-0 group-hover/item:opacity-100 px-2 py-1 mr-1 bg-white/10 hover:bg-white/20 text-white text-[10px] font-bold rounded transition-all"
-                        >
-                          {isMod ? "Remove Mod" : "Make Mod"}
-                        </button>
-                      )}
-                      
-                      {p && (
-                        <>
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center ${isMicOn ? "text-white/50" : "bg-red-500/20 text-red-400"}`}>
-                            {isMicOn ? <Mic size={12} /> : <MicOff size={12} />}
-                          </div>
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center ${isCamOn ? "text-white/50" : "bg-red-500/20 text-red-400"}`}>
-                            {isCamOn ? <VideoIcon size={12} /> : <VideoOff size={12} />}
-                          </div>
-                        </>
-                      )}
+                    <div className="flex gap-2 mt-1">
+                      <button 
+                        onClick={async (e) => {
+                          const btn = e.currentTarget;
+                          btn.disabled = true;
+                          const { updateParticipantRole } = await import("@/lib/api");
+                          await updateParticipantRole(meeting.id, dbUser.id, 'participant');
+                          (dbUser as any).role = 'participant'; // local mutation
+                          btn.closest('.flex-col')?.remove(); // hide item
+                        }}
+                        className="flex-1 bg-brand text-white font-bold py-1.5 rounded-lg text-xs hover:bg-brand-hover disabled:opacity-50"
+                      >
+                        Admit
+                      </button>
+                      <button 
+                        onClick={async (e) => {
+                          const btn = e.currentTarget;
+                          btn.disabled = true;
+                          const { removeParticipant } = await import("@/lib/api");
+                          await removeParticipant(meeting.id, dbUser.id);
+                          btn.closest('.flex-col')?.remove(); // hide item
+                        }}
+                        className="px-3 bg-red-500/20 text-red-400 hover:bg-red-500/30 hover:text-red-300 font-bold py-1.5 rounded-lg text-xs disabled:opacity-50"
+                      >
+                        Deny
+                      </button>
                     </div>
                   </div>
-                );
-              })}
-
-              {/* Waiting Room Section (Only visible to hosts/moderators) */}
-              {(currentUser.role === 'host' || meeting.host_id === currentUser.id || meeting.participants?.find(p => p.id === currentUser.id && (p as any).role === 'moderator')) && meeting.participants?.some(p => (p as any).role === 'waiting') && (
-                <>
-                  <div className="text-xs font-bold text-brand uppercase tracking-widest mb-2 px-3 pt-4 flex items-center gap-2">
-                    <AlertCircle size={14} /> Waiting Room
-                  </div>
-                  {meeting.participants.filter(p => (p as any).role === 'waiting').map((dbUser) => (
-                    <div key={dbUser.id} className="flex flex-col gap-2 px-3 py-3 rounded-xl bg-brand/5 border border-brand/20">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-surface-2 flex items-center justify-center text-white text-xs font-black shrink-0 border border-white/10">
-                          {(dbUser.name || "?")[0].toUpperCase()}
-                        </div>
-                        <p className="text-sm font-semibold text-white truncate">{dbUser.name}</p>
-                      </div>
-                      <div className="flex gap-2 mt-1">
-                        <button 
-                          onClick={async () => {
-                            const { updateParticipantRole } = await import("@/lib/api");
-                            await updateParticipantRole(meeting.id, dbUser.id, 'participant');
-                          }}
-                          className="flex-1 bg-brand text-white text-xs font-bold py-1.5 rounded-lg hover:bg-brand-hover transition-colors"
-                        >
-                          Admit
-                        </button>
-                        <button 
-                          onClick={async () => {
-                            const { removeParticipant } = await import("@/lib/api");
-                            await removeParticipant(meeting.id, dbUser.id);
-                          }}
-                          className="flex-1 bg-white/5 text-white/60 text-xs font-bold py-1.5 rounded-lg hover:bg-white/10 transition-colors"
-                        >
-                          Deny
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </>
+                ))}
+              </>
               )}
             </div>
           </>
@@ -500,13 +550,26 @@ function IntelligentLayout({ currentUser, meeting }: { currentUser: User; meetin
             </button>
           ))}
           <div className="p-2 border-t border-white/5">
-            <button
-              onClick={() => setActivePanel(null)}
-              className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all text-left"
-            >
-              <PhoneOff size={14} />
-              End for Everyone
-            </button>
+            {meeting.host_id === currentUser.id && (
+              <button
+                onClick={async () => {
+                  setActivePanel(null);
+                  if (confirm("Are you sure you want to end this meeting for everyone?")) {
+                    const { updateMeetingStatus } = await import("@/lib/api");
+                    await updateMeetingStatus(meeting.id, 'ended');
+                    await fetch('/api/livekit/admin', {
+                      method: 'POST',
+                      body: JSON.stringify({ action: 'end', room: meeting.id })
+                    });
+                    // The disconnect handler will push to /dashboard
+                  }
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all text-left"
+              >
+                <PhoneOff size={14} />
+                End for Everyone
+              </button>
+            )}
           </div>
         </div>
       )}

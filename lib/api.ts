@@ -67,7 +67,8 @@ export async function getMeetings(): Promise<Meeting[]> {
 
 export async function getMeetingById(idOrCode: string): Promise<Meeting | null> {
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrCode);
-  const matchFilter = isUuid ? `id.eq.${idOrCode},code.eq.${idOrCode}` : `code.eq.${idOrCode}`;
+  const finalCode = (!isUuid && !idOrCode.startsWith('swm-')) ? `swm-${idOrCode}` : idOrCode;
+  const matchFilter = isUuid ? `id.eq.${idOrCode},code.eq.${idOrCode}` : `code.eq.${finalCode}`;
 
   const { data, error } = await supabase
     .from('meetings')
@@ -246,6 +247,15 @@ export async function removeParticipant(meetingId: string, userId: string) {
     .delete()
     .eq('meeting_id', meetingId)
     .eq('user_id', userId);
+    
+  if (error) throw error;
+}
+
+export async function updateMeetingStatus(meetingId: string, status: 'upcoming' | 'live' | 'ended') {
+  const { error } = await supabase
+    .from('meetings')
+    .update({ status })
+    .eq('id', meetingId);
     
   if (error) throw error;
 }
