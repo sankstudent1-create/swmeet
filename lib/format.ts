@@ -25,3 +25,31 @@ export function formatRelative(iso: string) {
   if (past < 60) return `${past}m ago`;
   return `${Math.round(past / 60)}h ago`;
 }
+
+export async function copyToClipboard(text: string) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (e) {
+      console.warn("Clipboard API failed, using fallback", e);
+    }
+  }
+  // Fallback for non-HTTPS or missing API
+  try {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-999999px";
+    textArea.style.top = "-999999px";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    document.execCommand("copy");
+    textArea.remove();
+    return true;
+  } catch (e) {
+    console.error("Copy fallback failed", e);
+    return false;
+  }
+}

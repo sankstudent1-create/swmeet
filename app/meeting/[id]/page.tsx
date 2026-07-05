@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { getMeetingById, getCurrentUser, joinMeeting, type Meeting, type User } from "@/lib/api";
+import { copyToClipboard } from "@/lib/format";
 import Logo from "@/components/Logo";
 import {
   Copy, Check, Settings, AlertCircle,
@@ -95,10 +96,12 @@ export default function MeetingRoom() {
     return () => clearInterval(t);
   }, []);
 
-  function copyLink() {
-    navigator.clipboard.writeText(`${window.location.origin}/join/${id}`);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+  async function copyLink() {
+    const success = await copyToClipboard(`${window.location.origin}/join/${id}`);
+    if (success) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    }
   }
 
   const fmt = (s: number) =>

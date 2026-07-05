@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { generateMeetingCode, createMeeting, getCurrentUser, type User } from "@/lib/api";
-import { Video, Calendar, Copy, Check, ArrowRight, Repeat, AlertCircle, Shield } from "lucide-react";
+import { copyToClipboard } from "@/lib/format";
+import { Video, Calendar, Copy, Check, ArrowRight, Repeat, AlertCircle, Shield, Mail } from "lucide-react";
 import Spinner from "@/components/Spinner";
 
 export default function NewMeetingPage() {
@@ -17,6 +18,7 @@ export default function NewMeetingPage() {
   const [code, setCode] = useState("");
   const [copied, setCopied] = useState(false);
   const [requireApproval, setRequireApproval] = useState(false);
+  const [emails, setEmails] = useState("");
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -29,10 +31,12 @@ export default function NewMeetingPage() {
     });
   }, []);
 
-  function copyCode() {
-    navigator.clipboard.writeText(`${window.location.origin}/join/${code}`);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+  async function copyCode() {
+    const success = await copyToClipboard(`${window.location.origin}/join/${code}`);
+    if (success) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    }
   }
 
   async function handleStart(e: React.FormEvent) {
@@ -51,7 +55,7 @@ export default function NewMeetingPage() {
         status: "live",
         start_time: new Date().toISOString(),
         require_approval: requireApproval,
-      });
+      }, emails);
       router.push(`/meeting/${code}`);
     } catch (err: any) {
       console.error(err);
@@ -78,7 +82,7 @@ export default function NewMeetingPage() {
         start_time: startTime,
         recurring,
         require_approval: requireApproval,
-      });
+      }, emails);
       router.push("/dashboard");
     } catch (err: any) {
       console.error(err);
@@ -157,6 +161,19 @@ export default function NewMeetingPage() {
             </div>
           </div>
           
+          <div className="relative z-10 mt-6">
+            <label className="text-xs font-bold uppercase tracking-widest text-muted mb-2 block pl-1">Invite by Email (comma separated)</label>
+            <div className="relative">
+              <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
+              <input
+                value={emails}
+                onChange={(e) => setEmails(e.target.value)}
+                placeholder="colleague@example.com, friend@test.com"
+                className="w-full bg-surface-2 border border-border rounded-2xl pl-11 pr-4 py-3.5 text-sm font-medium outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all"
+              />
+            </div>
+          </div>
+          
           <label className="flex items-center gap-2.5 text-sm font-medium text-muted cursor-pointer w-fit hover:text-foreground transition-colors relative z-10 mt-2">
             <div className="relative flex items-center">
               <input
@@ -198,6 +215,19 @@ export default function NewMeetingPage() {
               placeholder="Weekly Roadmap Review"
               className="w-full bg-surface-2 border border-border rounded-2xl px-4 py-3.5 text-sm font-medium outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all"
             />
+          </div>
+          
+          <div className="relative z-10">
+            <label className="text-xs font-bold uppercase tracking-widest text-muted mb-2 block pl-1">Invite by Email (comma separated)</label>
+            <div className="relative">
+              <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
+              <input
+                value={emails}
+                onChange={(e) => setEmails(e.target.value)}
+                placeholder="colleague@example.com, friend@test.com"
+                className="w-full bg-surface-2 border border-border rounded-2xl pl-11 pr-4 py-3.5 text-sm font-medium outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all"
+              />
+            </div>
           </div>
           
           <div className="grid grid-cols-2 gap-4 relative z-10">

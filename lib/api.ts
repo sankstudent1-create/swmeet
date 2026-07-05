@@ -153,7 +153,7 @@ async function ensureProfile(user: { id: string; email?: string; user_metadata?:
   }
 }
 
-export async function createMeeting(data: Partial<Meeting>) {
+export async function createMeeting(data: Partial<Meeting>, emails?: string) {
   const { data: newMeeting, error } = await supabase
     .from('meetings')
     .insert([data])
@@ -165,6 +165,28 @@ export async function createMeeting(data: Partial<Meeting>) {
   // Add host as participant
   if (data.host_id) {
     await joinMeeting(newMeeting.id, data.host_id, 'host');
+  }
+
+  // Handle email invites
+  if (emails) {
+    const emailList = emails.split(',').map(e => e.trim()).filter(Boolean);
+    if (emailList.length > 0) {
+      // Find users by email
+      const { data: users } = await supabase
+        .from('profiles')
+        .select('id, email')
+        .in('email', emailList);
+
+      if (users && users.length > 0) {
+        // Add them as participants
+        const participants = users.map(u => ({
+          meeting_id: newMeeting.id,
+          user_id: u.id,
+          role: 'participant',
+        }));
+        await supabase.from('meeting_participants').upsert(participants, { onConflict: 'meeting_id,user_id' });
+      }
+    }
   }
   
   return newMeeting;
