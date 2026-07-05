@@ -217,7 +217,7 @@ export async function joinMeeting(meetingId: string, userId: string, forceRole?:
     .select('role')
     .eq('meeting_id', meetingId)
     .eq('user_id', userId)
-    .single();
+    .maybeSingle();
 
   if (existing) {
     return existing.role;
