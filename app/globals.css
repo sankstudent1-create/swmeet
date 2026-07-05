@@ -1,0 +1,157 @@
+@import "tailwindcss";
+
+:root,
+[data-theme="light"] {
+  --background: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #FFF8F2; /* Cream */
+  --border: #F0E2D8; /* Line */
+  --foreground: #1A1410; /* Ink */
+  --muted: #9a8f86;
+  --brand: #E8472A; /* Red */
+  --brand-2: #FF8A3D; /* Orange */
+  --accent: #FF8A3D;
+  --danger: #E8472A;
+  --success: #2BA84A;
+}
+
+[data-theme="dark"] {
+  --background: #111111;
+  --surface: #1A1A1A;
+  --surface-2: #222222;
+  --border: #2E2E2E;
+  --foreground: #F0EDE8;
+  --muted: #6E6460;
+  --brand: #E8472A;
+  --brand-2: #FF8A3D;
+  --accent: #FF8A3D;
+  --danger: #E8472A;
+  --success: #2BA84A;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-brand: var(--brand);
+  --color-brand-2: var(--brand-2);
+  --color-accent: var(--accent);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --font-sans: var(--font-jakarta);
+}
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, var(--brand), var(--brand-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.gradient-bg {
+  background: var(--brand);
+  transition: all 0.3s ease;
+}
+
+.gradient-bg:hover {
+  background: var(--foreground); /* Hovering red button goes to ink */
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+
+.glass-panel {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #F0E2D8;
+  border-radius: 999px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+.text-shadow-sm {
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+.stagger-1 { animation-delay: 100ms; }
+.stagger-2 { animation-delay: 200ms; }
+.stagger-3 { animation-delay: 300ms; }
+.stagger-4 { animation-delay: 400ms; }
+.stagger-5 { animation-delay: 500ms; }
+
+@keyframes subtle-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(232, 71, 42, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(232, 71, 42, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(232, 71, 42, 0); }
+}
+
+.animate-pulse-glow {
+  animation: subtle-pulse 2s infinite;
+}
+
+/* Mesh Gradient Background */
+.bg-mesh {
+  background-color: var(--surface-2);
+  background-image: 
+    radial-gradient(at 0% 0%, hsla(11, 80%, 54%, 0.1) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, hsla(24, 100%, 62%, 0.1) 0px, transparent 50%);
+  background-size: cover;
+  background-position: center;
+}
+
+/* --- LiveKit Tile Overrides (minimal - layout is 100% custom) --- */
+/* Strip default chrome from participant tiles */
+.lk-participant-tile {
+  background: #151515 !important;
+  border-radius: 1rem !important;
+}
+.lk-participant-placeholder {
+  background: #111 !important;
+}
+/* Remove default LK control bar — we use our own */
+.lk-control-bar {
+  display: none !important;
+}
+/* Remove LiveKit's default chat styles — we use our own */
+.lk-chat {
+  display: none !important;
+}
+
