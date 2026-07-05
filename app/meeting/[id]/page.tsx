@@ -200,10 +200,6 @@ export default function MeetingRoom() {
             serverUrl={process.env.NEXT_PUBLIC_LIVEKIT_URL}
             onDisconnected={() => router.push("/dashboard")}
             className="w-full h-full"
-            options={{
-              adaptiveStream: true,
-              dynacast: true,
-            }}
           >
             <IntelligentLayout currentUser={currentUser} meeting={meeting!} />
             <RoomAudioRenderer />
@@ -460,7 +456,11 @@ function IntelligentLayout({ currentUser, meeting }: { currentUser: User; meetin
                           // Local mutation for instant feedback
                           (dbUser as any).role = isMod ? 'participant' : 'moderator';
                         }}
-                        className="px-2 py-1 mr-1 bg-white/10 hover:bg-white/20 text-white/80 hover:text-white text-[10px] font-bold rounded transition-all border border-white/10 shrink-0"
+                        className={`px-3 py-1.5 mr-2 text-[11px] font-extrabold rounded-lg transition-all shrink-0 border ${
+                          isMod 
+                            ? "bg-red-500/20 text-red-400 border-red-500/30 hover:bg-red-500/30" 
+                            : "bg-blue-500/20 text-blue-400 border-blue-500/30 hover:bg-blue-500/30"
+                        }`}
                       >
                         {isMod ? "Remove Mod" : "Make Mod"}
                       </button>
