@@ -451,7 +451,7 @@ function IntelligentLayout({ currentUser, meeting }: { currentUser: User; meetin
                           title={isMicOn ? "Mute Participant" : "Mic Off"}
                           onClick={async () => {
                             if (!isMicOn) return;
-                            const audioTracks = Array.from(p.audioTrackPublications.values());
+                            const audioTracks = Array.from(p.audioTrackPublications.values() as Iterable<any>);
                             const trackSid = audioTracks[0]?.trackSid;
                             if (trackSid) {
                               await fetch('/api/livekit/admin', {
