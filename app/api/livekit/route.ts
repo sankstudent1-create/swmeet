@@ -47,8 +47,8 @@ export async function GET(req: NextRequest) {
     roomAdmin: isHostOrMod,
     // Block standard users from screen sharing
     canPublishSources: isHostOrMod ? undefined : [
-      Track.Source.Microphone as unknown as string, 
-      Track.Source.Camera as unknown as string
+      Track.Source.Microphone as any, 
+      Track.Source.Camera as any
     ],
   });
 
