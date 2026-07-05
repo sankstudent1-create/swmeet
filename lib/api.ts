@@ -212,9 +212,18 @@ export async function joinMeeting(meetingId: string, userId: string, forceRole?:
     }
   }
 
-  const { error } = await supabase.from('meeting_participants').upsert(
-    { meeting_id: meetingId, user_id: userId, role },
-    { onConflict: 'meeting_id,user_id' }
+  const { data: existing } = await supabase.from('meeting_participants')
+    .select('role')
+    .eq('meeting_id', meetingId)
+    .eq('user_id', userId)
+    .single();
+
+  if (existing) {
+    return existing.role;
+  }
+
+  const { error } = await supabase.from('meeting_participants').insert(
+    { meeting_id: meetingId, user_id: userId, role }
   );
   
   if (error) throw error;
