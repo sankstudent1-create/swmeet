@@ -93,6 +93,23 @@ export default function MeetingRoom() {
     return () => { if (interval) clearInterval(interval); };
   }, [id, router, isWaiting]);
 
+  // Poll meeting state when successfully connected to update participants and waiting room
+  useEffect(() => {
+    if (!id || isWaiting || !meeting) return;
+    
+    const interval = setInterval(async () => {
+      const { getMeetingById } = await import("@/lib/api");
+      const m = await getMeetingById(id as string);
+      if (m) {
+        setMeeting(m);
+        if (m.status === 'ended') {
+          router.push('/dashboard');
+        }
+      }
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [id, isWaiting, meeting?.id, router]);
+
   useEffect(() => {
     const t = setInterval(() => setElapsed(s => s + 1), 1000);
     return () => clearInterval(t);
@@ -183,6 +200,14 @@ export default function MeetingRoom() {
             serverUrl={process.env.NEXT_PUBLIC_LIVEKIT_URL}
             onDisconnected={() => router.push("/dashboard")}
             className="w-full h-full"
+            options={{
+              adaptiveStream: true,
+              dynacast: true,
+              publishDefaults: {
+                videoSimulcast: true,
+                screenShareSimulcast: true,
+              }
+            }}
           >
             <IntelligentLayout currentUser={currentUser} meeting={meeting!} />
             <RoomAudioRenderer />
@@ -439,7 +464,7 @@ function IntelligentLayout({ currentUser, meeting }: { currentUser: User; meetin
                           // Local mutation for instant feedback
                           (dbUser as any).role = isMod ? 'participant' : 'moderator';
                         }}
-                        className="opacity-0 group-hover/item:opacity-100 px-2 py-1 mr-1 bg-white/10 hover:bg-white/20 text-white text-[10px] font-bold rounded transition-all"
+                        className="px-2 py-1 mr-1 bg-white/10 hover:bg-white/20 text-white/80 hover:text-white text-[10px] font-bold rounded transition-all border border-white/10 shrink-0"
                       >
                         {isMod ? "Remove Mod" : "Make Mod"}
                       </button>
