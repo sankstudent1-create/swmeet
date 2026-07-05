@@ -45,15 +45,11 @@ create table if not exists public.meetings (
 
 alter table public.meetings enable row level security;
 
--- Meetings are viewable by the host or anyone who is a participant
+-- Meetings are viewable by anyone who is authenticated (needed so users can see a meeting to join it)
 drop policy if exists "Meetings are viewable by host or participants" on public.meetings;
-drop policy if exists "Meetings are viewable by everyone" on public.meetings; -- Drop the old version if it exists
-create policy "Meetings are viewable by host or participants" on public.meetings for select using (
-  auth.uid() = host_id or 
-  exists (
-    select 1 from public.meeting_participants mp 
-    where mp.meeting_id = id and mp.user_id = auth.uid()
-  )
+drop policy if exists "Meetings are viewable by authenticated users" on public.meetings;
+create policy "Meetings are viewable by authenticated users" on public.meetings for select using (
+  auth.uid() is not null
 );
 
 drop policy if exists "Authenticated users can create meetings" on public.meetings;

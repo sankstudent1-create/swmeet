@@ -21,13 +21,9 @@ CHECK (role in ('host', 'moderator', 'participant', 'waiting'));
 DROP POLICY IF EXISTS "Meetings are viewable by everyone" ON public.meetings;
 DROP POLICY IF EXISTS "Meetings are viewable by host or participants" ON public.meetings;
 
-CREATE POLICY "Meetings are viewable by host or participants" ON public.meetings 
+CREATE POLICY "Meetings are viewable by authenticated users" ON public.meetings 
 FOR SELECT USING (
-  auth.uid() = host_id or 
-  exists (
-    select 1 from public.meeting_participants mp 
-    where mp.meeting_id = id and mp.user_id = auth.uid()
-  )
+  auth.uid() is not null
 );
 
 -- 4. Update the participants update/delete policies for hosts/moderators
