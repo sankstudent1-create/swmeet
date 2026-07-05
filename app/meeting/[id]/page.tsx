@@ -520,8 +520,7 @@ function IntelligentLayout({ currentUser, meeting }: { currentUser: User; meetin
               </>
               )}
             </div>
-          </>
-        )}
+          </div>
       </div>
 
       {/* ── MORE MENU — floating popup above the More button ── */}
