@@ -203,10 +203,6 @@ export default function MeetingRoom() {
             options={{
               adaptiveStream: true,
               dynacast: true,
-              publishDefaults: {
-                videoSimulcast: true,
-                screenShareSimulcast: true,
-              }
             }}
           >
             <IntelligentLayout currentUser={currentUser} meeting={meeting!} />
