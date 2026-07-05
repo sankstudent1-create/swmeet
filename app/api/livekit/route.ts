@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { AccessToken } from "livekit-server-sdk";
+import { AccessToken, TrackSource } from "livekit-server-sdk";
 
 export async function GET(req: NextRequest) {
   const room = req.nextUrl.searchParams.get("room");
@@ -46,8 +46,8 @@ export async function GET(req: NextRequest) {
     roomAdmin: isHostOrMod,
     // Block standard users from screen sharing
     canPublishSources: isHostOrMod ? undefined : [
-      "microphone" as any, 
-      "camera" as any
+      TrackSource.MICROPHONE, 
+      TrackSource.CAMERA
     ],
   });
 
