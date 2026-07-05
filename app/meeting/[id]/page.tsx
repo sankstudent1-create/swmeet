@@ -157,7 +157,7 @@ export default function MeetingRoom() {
             onDisconnected={() => router.push("/dashboard")}
             className="w-full h-full"
           >
-            <IntelligentLayout currentUser={currentUser} meeting={meeting} />
+            <IntelligentLayout currentUser={currentUser} meeting={meeting!} />
             <RoomAudioRenderer />
           </LiveKitRoom>
         ) : (
