@@ -33,7 +33,7 @@ function MeetingRow({ m, isLive = false, staggerIndex = 1 }: { m: Meeting; isLiv
   function copyLink(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
-    navigator.clipboard.writeText(`https://swmeet.swinfosystems.online/join/${m.code}`);
+    navigator.clipboard.writeText(`https://swmeet.swinfosystems.online/meeting/${m.code}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }

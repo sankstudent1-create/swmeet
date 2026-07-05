@@ -97,7 +97,7 @@ export default function MeetingRoom() {
   }, []);
 
   async function copyLink() {
-    const success = await copyToClipboard(`${window.location.origin}/join/${id}`);
+    const success = await copyToClipboard(`${window.location.origin}/meeting/${id}`);
     if (success) {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);

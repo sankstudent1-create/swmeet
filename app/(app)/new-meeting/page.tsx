@@ -32,7 +32,7 @@ export default function NewMeetingPage() {
   }, []);
 
   async function copyCode() {
-    const success = await copyToClipboard(`${window.location.origin}/join/${code}`);
+    const success = await copyToClipboard(`${window.location.origin}/meeting/${code}`);
     if (success) {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
@@ -154,7 +154,7 @@ export default function NewMeetingPage() {
           <div className="relative z-10">
             <label className="text-xs font-bold uppercase tracking-widest text-muted mb-2 block pl-1">Your meeting link</label>
             <div className="flex items-center justify-between gap-3 bg-surface-2 border border-border rounded-2xl px-4 py-3.5">
-              <span className="text-sm font-mono truncate font-medium text-foreground">{window.location.host}/join/{code}</span>
+              <span className="text-sm font-mono truncate font-medium text-foreground">{window.location.host}/meeting/{code}</span>
               <button type="button" onClick={copyCode} className="text-brand hover:text-brand-hover shrink-0 p-1 bg-brand/5 rounded-md hover:bg-brand/10 transition-colors">
                 {copied ? <Check size={18} className="text-success" /> : <Copy size={18} />}
               </button>
