@@ -29,8 +29,35 @@ import {
   useParticipants,
   useTrackToggle,
 } from "@livekit/components-react";
-import { Track } from "livekit-client";
+import { Track, RoomOptions, VideoPresets } from "livekit-client";
 import "@livekit/components-styles";
+
+// ---------------------------------------------------------------------------
+// LIVEKIT ROOM OPTIONS
+// ---------------------------------------------------------------------------
+const roomOptions: RoomOptions = {
+  adaptiveStream: true,
+  dynacast: true,
+  publishDefaults: {
+    simulcast: true,
+    videoSimulcastLayers: [
+      VideoPresets.h1080,
+      VideoPresets.h720,
+      VideoPresets.h360,
+    ],
+    screenShareEncoding: {
+      maxBitrate: 3_000_000,
+      maxFramerate: 30,
+    },
+    videoEncoding: {
+      maxBitrate: 1_500_000,
+      maxFramerate: 30,
+    }
+  },
+  videoCaptureDefaults: {
+    resolution: VideoPresets.h720.resolution,
+  },
+};
 
 // ---------------------------------------------------------------------------
 // ROOT PAGE COMPONENT
@@ -198,6 +225,7 @@ export default function MeetingRoom() {
             audio={true}
             token={token}
             serverUrl={process.env.NEXT_PUBLIC_LIVEKIT_URL}
+            options={roomOptions}
             onDisconnected={() => router.push("/dashboard")}
             className="w-full h-full"
           >
@@ -633,7 +661,10 @@ function ControlBar({
 
   const mic   = useTrackToggle({ source: Track.Source.Microphone });
   const cam   = useTrackToggle({ source: Track.Source.Camera });
-  const share = useTrackToggle({ source: Track.Source.ScreenShare });
+  const share = useTrackToggle({ 
+    source: Track.Source.ScreenShare,
+    captureOptions: { audio: true, systemAudio: 'include' }
+  });
 
   useEffect(() => {
     const count = chatMessages.length;
