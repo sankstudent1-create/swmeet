@@ -28,6 +28,7 @@ import {
   useChat,
   useParticipants,
   useTrackToggle,
+  useMediaDeviceSelect,
 } from "@livekit/components-react";
 import { Track, RoomOptions, VideoPresets } from "livekit-client";
 import "@livekit/components-styles";
@@ -299,6 +300,8 @@ type Panel = "chat" | "people" | "more" | null;
 
 function IntelligentLayout({ currentUser, meeting }: { currentUser: User; meeting: Meeting }) {
   const [activePanel, setActivePanel] = useState<Panel>(null);
+  const [showSettings, setShowSettings] = useState(false);
+  const [speakerView, setSpeakerView] = useState(false);
   const [barVisible, setBarVisible] = useState(true);
   const barTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const moreRef = useRef<HTMLDivElement>(null);
@@ -353,7 +356,7 @@ function IntelligentLayout({ currentUser, meeting }: { currentUser: User; meetin
   }, [hasScreenShare, resetBarTimer]);
 
   // Calculate grid columns for camera tiles based on participant count
-  const gridCols = participantCount <= 1 ? 1 : participantCount <= 4 ? 2 : participantCount <= 9 ? 3 : 4;
+  const gridCols = speakerView ? 1 : (participantCount <= 1 ? 1 : participantCount <= 4 ? 2 : participantCount <= 9 ? 3 : 4);
 
   const sidebarOpen = activePanel === "chat" || activePanel === "people";
 
@@ -582,14 +585,18 @@ function IntelligentLayout({ currentUser, meeting }: { currentUser: User; meetin
             <p className="text-xs font-bold text-white/40 uppercase tracking-widest">Room Options</p>
           </div>
           {[
-            { icon: <Sliders size={15} />,   label: "Audio & Video Settings" },
-            { icon: <Volume2 size={15} />,   label: "Speaker View" },
-            { icon: <Shield size={15} />,    label: "Security" },
-            { icon: <LinkIcon size={15} />,  label: "Copy Invite Link" },
+            { icon: <Sliders size={15} />,   label: "Audio & Video Settings", action: () => setShowSettings(true) },
+            { icon: <Volume2 size={15} />,   label: "Speaker View", action: () => setSpeakerView(v => !v) },
+            { icon: <Shield size={15} />,    label: "Security", action: () => togglePanel("people") },
+            { icon: <LinkIcon size={15} />,  label: "Copy Invite Link", action: async () => { 
+                const { copyToClipboard } = await import("@/lib/format");
+                const success = await copyToClipboard(`${window.location.origin}/meeting/${meeting.code || meeting.id}`);
+                if (success) alert("Link copied!");
+            } },
           ].map((item) => (
             <button
               key={item.label}
-              onClick={() => setActivePanel(null)}
+              onClick={() => { setActivePanel(null); item.action(); }}
               className="w-full flex items-center gap-3 px-4 py-3 text-sm text-white/70 hover:text-white hover:bg-white/5 transition-all text-left"
             >
               <span className="text-white/40">{item.icon}</span>
@@ -641,6 +648,8 @@ function IntelligentLayout({ currentUser, meeting }: { currentUser: User; meetin
         />
       </div>
 
+      {/* ── SETTINGS MODAL ── */}
+      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
     </div>
   );
 }
@@ -848,6 +857,81 @@ function CustomChat() {
           </button>
         </div>
       </form>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// SETTINGS MODAL
+// ---------------------------------------------------------------------------
+function SettingsModal({ onClose }: { onClose: () => void }) {
+  const mic = useMediaDeviceSelect({ kind: 'audioinput' });
+  const cam = useMediaDeviceSelect({ kind: 'videoinput' });
+  const speaker = useMediaDeviceSelect({ kind: 'audiooutput' });
+
+  return (
+    <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in" onClick={onClose}>
+      <div className="bg-[#1c1c1e] w-[90%] max-w-md p-6 rounded-3xl border border-white/10 shadow-2xl flex flex-col gap-6" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between">
+          <h3 className="text-white font-bold text-lg flex items-center gap-2">
+            <Sliders size={18} className="text-brand" /> Settings
+          </h3>
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/40 hover:text-white transition-all">
+            <X size={16} strokeWidth={2.5} />
+          </button>
+        </div>
+        
+        <div className="space-y-4">
+          <DeviceSelector icon={<Mic size={16} />} label="Microphone" deviceHook={mic} />
+          <DeviceSelector icon={<Volume2 size={16} />} label="Speaker / Output" deviceHook={speaker} />
+          <DeviceSelector icon={<VideoIcon size={16} />} label="Camera" deviceHook={cam} />
+        </div>
+
+        <button onClick={onClose} className="w-full py-3 mt-2 bg-brand text-white rounded-xl font-bold hover:bg-brand-hover transition-colors shadow-lg shadow-brand/20">
+          Done
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function DeviceSelector({ icon, label, deviceHook }: { icon: React.ReactNode, label: string, deviceHook: ReturnType<typeof useMediaDeviceSelect> }) {
+  const { devices, activeDeviceId, setActiveMediaDevice } = deviceHook;
+  
+  if (!devices || devices.length === 0) {
+    return (
+      <div className="flex flex-col gap-2 opacity-50">
+        <label className="text-xs font-bold text-white/50 flex items-center gap-2 uppercase tracking-wider">
+          {icon} {label}
+        </label>
+        <div className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white/50">
+          No devices found
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <label className="text-xs font-bold text-white/50 flex items-center gap-2 uppercase tracking-wider">
+        {icon} {label}
+      </label>
+      <div className="relative">
+        <select 
+          value={activeDeviceId || ""} 
+          onChange={(e) => setActiveMediaDevice(e.target.value)}
+          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-brand/50 focus:ring-1 focus:ring-brand/50 transition-all appearance-none cursor-pointer"
+        >
+          {devices.map(d => (
+            <option key={d.deviceId} value={d.deviceId} className="bg-[#1c1c1e] text-white truncate pr-8">
+              {d.label || `Unknown ${label}`}
+            </option>
+          ))}
+        </select>
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/40">
+          <ChevronRight size={14} className="rotate-90" />
+        </div>
+      </div>
     </div>
   );
 }
